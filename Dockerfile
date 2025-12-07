@@ -75,94 +75,9 @@ COPY --from=frontend-builder /app/frontend/public /app/frontend/public/
 # 复制package.json以便Node.js能正确运行
 COPY --from=frontend-builder /app/frontend/package.json /app/frontend/
 
-# 创建Caddyfile
-RUN cat > /etc/caddy/Caddyfile << 'EOF'
-{
-    admin off
-    auto_https off
-}
+COPY ops/Caddyfile /etc/caddy/Caddyfile
 
-:3000 {
-    # API代理到后端
-    handle /api/* {
-        reverse_proxy localhost:8080
-    }
-
-    # 直接让Next.js处理所有静态文件
-    # 这样可以避免Caddy的路径匹配问题
-    handle {
-        reverse_proxy localhost:3001 {
-            header_up Host {host}
-            header_up X-Real-IP {remote}
-            header_up X-Forwarded-For {remote}
-            header_up X-Forwarded-Proto {scheme}
-        }
-    }
-
-    # 日志
-    log {
-        output file /app/logs/caddy.log
-        level INFO
-    }
-}
-EOF
-
-# 创建supervisor配置
-RUN cat > /etc/supervisor/conf.d/supervisord.conf << 'EOF'
-[supervisord]
-nodaemon=true
-user=root
-logfile=/app/logs/supervisord.log
-pidfile=/var/run/supervisord.pid
-loglevel=info
-
-[unix_http_server]
-file=/run/supervisord.sock
-chmod=0700
-
-[supervisorctl]
-serverurl=unix:///run/supervisord.sock
-
-[rpcinterface:supervisor]
-supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
-
-[program:backend]
-command=/app/backend/firemail
-directory=/app/backend
-autostart=true
-autorestart=true
-startretries=3
-stderr_logfile=/app/logs/backend.log
-stdout_logfile=/app/logs/backend.log
-stderr_logfile_maxbytes=10MB
-stdout_logfile_maxbytes=10MB
-environment=HOST="0.0.0.0",PORT="8080",ENV="production",GIN_MODE="release",DB_PATH="/app/data/firemail.db",DB_BACKUP_DIR="/app/data/backups",CORS_ORIGINS="http://localhost:3000",NODE_ENV="production",NEXT_PUBLIC_API_BASE_URL="/api/v1"
-redirect_stderr=true
-
-[program:frontend]
-command=node server.js
-directory=/app/frontend
-autostart=true
-autorestart=true
-startretries=3
-stderr_logfile=/app/logs/frontend.log
-stdout_logfile=/app/logs/frontend.log
-stderr_logfile_maxbytes=10MB
-stdout_logfile_maxbytes=10MB
-environment=PORT="3001",HOSTNAME="0.0.0.0",NODE_ENV="production",NEXT_PUBLIC_API_BASE_URL="/api/v1"
-redirect_stderr=true
-
-[program:caddy]
-command=caddy run --config /etc/caddy/Caddyfile
-autostart=true
-autorestart=true
-startretries=3
-stderr_logfile=/app/logs/caddy.log
-stdout_logfile=/app/logs/caddy.log
-stderr_logfile_maxbytes=10MB
-stdout_logfile_maxbytes=10MB
-redirect_stderr=true
-EOF
+COPY ops/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # 复制启动脚本
 COPY start.sh /app/start.sh

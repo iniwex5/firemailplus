@@ -1,0 +1,24 @@
+{
+    admin off
+    auto_https off
+}
+
+:3000 {
+    handle /api/* {
+        reverse_proxy localhost:8080
+    }
+
+    handle {
+        reverse_proxy localhost:3001 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+
+    log {
+        output file /app/logs/caddy.log
+        level INFO
+    }
+}
