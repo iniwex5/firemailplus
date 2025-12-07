@@ -45,20 +45,15 @@ ENV NODE_ENV=production
 RUN pnpm build
 
 # 阶段3: 最终运行镜像
-FROM alpine:latest
+FROM node:20-alpine
 
 # 安装运行时依赖
 RUN apk add --no-cache \
     ca-certificates \
     sqlite \
-    sqlite-dev \
-    musl-dev \
-    libc6-compat \
-    caddy \
-    supervisor \
     tzdata \
-    nodejs \
-    npm
+    caddy \
+    supervisor
 
 # 设置时区
 ENV TZ=Asia/Shanghai
