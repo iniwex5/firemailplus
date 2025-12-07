@@ -12,6 +12,7 @@ import {
   Languages,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useUIStore } from '@/lib/store';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -241,6 +242,16 @@ export function EmailDetailHeader({
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
             )}
+
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => {
+                const { readabilityWhiteCard } = useUIStore.getState();
+                useUIStore.getState().setReadabilityWhiteCard(!readabilityWhiteCard);
+              }}
+            >
+              白底阅读
+            </DropdownMenuItem>
 
             <DropdownMenuSeparator />
 

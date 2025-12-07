@@ -7,6 +7,7 @@ import { TranslationBar } from './translation-bar';
 import { translateText, translateHtmlContent, LanguageCode, detectLanguage } from '@/lib/translate';
 import { toast } from 'sonner';
 import '@/styles/email-content.css';
+import { useUIStore } from '@/lib/store';
 
 interface EmailContentProps {
   email: Email;
@@ -91,6 +92,7 @@ export function EmailContent({
   // 渲染邮件内容
   const renderContent = () => {
     const content = showTranslation && translatedContent ? translatedContent : originalContent;
+    const { readabilityWhiteCard } = useUIStore.getState();
 
     if (!content) {
       return (
@@ -238,18 +240,32 @@ export function EmailContent({
         KEEP_CONTENT: true,
       });
 
+      const cleanedHtml = (() => {
+        if (!readabilityWhiteCard) return sanitizedHtml;
+        let html = sanitizedHtml;
+        html = html.replace(/\sbgcolor=("[^"]*"|'[^']*'|[^\s>]+)/gi, '');
+        html = html.replace(/\sbackground=("[^"]*"|'[^']*'|[^\s>]+)/gi, '');
+        html = html.replace(/style=("|')(.*?)("|')/gi, (m, q1, styles, q2) => {
+          const updated = styles
+            .replace(/background(?:-color)?\s*:[^;]+;?/gi, '')
+            .replace(/background\s*:[^;]+;?/gi, '');
+          return `style=${q1}${updated}${q2}`;
+        });
+        return html;
+      })();
+
       // 渲染HTML内容
       return (
         <div
-          className="email-html-content prose prose-sm max-w-none dark:prose-invert prose-gray"
+          className={`email-html-content prose prose-sm max-w-none prose-gray ${
+            readabilityWhiteCard ? '' : 'dark:prose-invert'
+          }`}
           dangerouslySetInnerHTML={{
-            __html: sanitizedHtml,
+            __html: cleanedHtml,
           }}
           style={{
-            // 确保HTML内容的样式适配
             wordBreak: 'break-word',
             lineHeight: '1.6',
-            // 邮件特有样式
             fontSize: '14px',
             fontFamily: 'system-ui, -apple-system, sans-serif',
           }}
@@ -279,7 +295,7 @@ export function EmailContent({
 
       {/* 邮件正文 */}
       <div className="flex-1 overflow-y-auto">
-        <div className="p-6">
+        <div className={`p-6 ${useUIStore.getState().readabilityWhiteCard ? 'email-readability' : ''}`}>
           {isTranslating ? (
             // 翻译加载状态
             <div className="space-y-4">

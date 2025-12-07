@@ -267,3 +267,29 @@
 .dark .email-html-content a:hover {
   color: #93c5fd;
 }
+
+/* 白底阅读增强：在暗色主题下也保持白色背景与高对比字体 */
+.email-readability {
+  background: #ffffff;
+  color: #111827;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+  padding: 24px;
+}
+
+.email-readability .email-html-content,
+.email-readability .whitespace-pre-wrap {
+  color: #111827;
+}
+
+.email-readability .email-html-content a { color: #1d4ed8; }
+.email-readability .email-html-content a:hover { color: #1e40af; }
+.email-readability .email-html-content blockquote { border-left-color: #e5e7eb; color: #6b7280; }
+.email-readability .email-html-content pre,
+.email-readability .email-html-content code { background-color: #f3f4f6; }
+.email-readability .email-html-content hr { border-top-color: #e5e7eb; }
+.email-readability .email-html-content table[border] { border-color: #e5e7eb; }
+.email-readability .email-html-content td,
+.email-readability .email-html-content th { border-color: #e5e7eb; }
+.email-readability .email-html-content th { background-color: #f9fafb; }
+.email-readability .email-html-content tr:nth-child(even) { background-color: #f9fafb; }

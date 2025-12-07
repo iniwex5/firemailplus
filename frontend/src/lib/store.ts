@@ -62,6 +62,7 @@ interface UIState {
   sidebarOpenMobile: boolean; // 移动端独立的侧边栏状态
   isMobile: boolean;
   theme: 'light' | 'dark' | 'system';
+  readabilityWhiteCard: boolean;
 
   // 布局状态
   emailListWidth: number;
@@ -86,6 +87,7 @@ interface UIState {
   setSidebarOpenMobile: (open: boolean) => void;
   setIsMobile: (mobile: boolean) => void;
   setTheme: (theme: 'light' | 'dark' | 'system') => void;
+  setReadabilityWhiteCard: (enabled: boolean) => void;
   toggleSidebar: () => void;
 
   // 布局操作
@@ -117,6 +119,7 @@ export const useUIStore = create<UIState>()(
       sidebarOpenMobile: false, // 移动端默认关闭
       isMobile: false,
       theme: 'system',
+      readabilityWhiteCard: true,
 
       // 布局状态
       emailListWidth: 400,
@@ -141,6 +144,7 @@ export const useUIStore = create<UIState>()(
       setSidebarOpenMobile: (open) => set({ sidebarOpenMobile: open }),
       setIsMobile: (mobile) => set({ isMobile: mobile }),
       setTheme: (theme) => set({ theme }),
+      setReadabilityWhiteCard: (enabled) => set({ readabilityWhiteCard: enabled }),
       toggleSidebar: () =>
         set((state) => {
           const { isMobile } = get();
@@ -184,6 +188,7 @@ export const useUIStore = create<UIState>()(
         sidebarOpen: state.sidebarOpen,
         sidebarOpenMobile: state.sidebarOpenMobile,
         theme: state.theme,
+        readabilityWhiteCard: state.readabilityWhiteCard,
         emailListWidth: state.emailListWidth,
         emailDetailWidth: state.emailDetailWidth,
         emailListView: state.emailListView,
