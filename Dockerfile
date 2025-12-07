@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.6
 # 多阶段构建 Dockerfile for FireMail
 # 阶段1: 构建后端Go应用
 FROM golang:1.24-alpine AS backend-builder
@@ -6,16 +7,16 @@ FROM golang:1.24-alpine AS backend-builder
 RUN apk add --no-cache gcc musl-dev sqlite-dev
 
 WORKDIR /app/backend
+ENV GOMODCACHE=/go/pkg/mod
+ENV GOCACHE=/root/.cache/go-build
 
 # 复制Go模块文件
 COPY backend/go.mod backend/go.sum ./
-RUN go mod download
+RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build go mod download
 
-# 复制后端源代码
 COPY backend/ ./
 
-# 构建后端应用
-RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o firemail cmd/firemail/main.go
+RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o firemail cmd/firemail/main.go
 
 # 验证构建结果
 RUN ls -la firemail
@@ -24,24 +25,22 @@ RUN ls -la firemail
 FROM node:20-alpine AS frontend-builder
 
 WORKDIR /app/frontend
+ENV PNPM_HOME=/root/.pnpm
+ENV PATH=$PNPM_HOME:$PATH
 
-# 安装pnpm
-RUN npm install -g pnpm
+RUN corepack enable
 
 # 复制package文件
 COPY frontend/package.json frontend/pnpm-lock.yaml ./
-
-# 安装依赖
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=cache,target=/root/.pnpm-store pnpm install --frozen-lockfile
 
 # 复制前端源代码
-COPY frontend/ ./
+COPY --link frontend/ ./
 
 # 设置构建时环境变量
 ENV NEXT_PUBLIC_API_BASE_URL=/api/v1
 ENV NODE_ENV=production
 
-# 构建前端应用（使用standalone模式）
 RUN pnpm build
 
 # 阶段3: 最终运行镜像

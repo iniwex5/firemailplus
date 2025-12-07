@@ -12,6 +12,7 @@ docs/
 backend/build/
 backend/dist/
 frontend/.next/
+frontend/.next/cache/
 frontend/out/
 frontend/build/
 *.exe
