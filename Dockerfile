@@ -1,6 +1,6 @@
 # 多阶段构建 Dockerfile for FireMail
 # 阶段1: 构建后端Go应用
-FROM golang:1.24-alpine3.19 AS backend-builder
+FROM golang:1.24-alpine AS backend-builder
 
 # 安装必要的构建工具
 RUN apk add --no-cache gcc musl-dev sqlite-dev
@@ -21,7 +21,7 @@ RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflag
 RUN ls -la firemail
 
 # 阶段2: 构建前端Next.js应用
-FROM node:20-alpine3.19 AS frontend-builder
+FROM node:20-alpine AS frontend-builder
 
 WORKDIR /app/frontend
 
@@ -45,9 +45,7 @@ ENV NODE_ENV=production
 RUN pnpm build
 
 # 阶段3: 最终运行镜像
-FROM node:20-alpine3.19
-RUN echo "https://dl-cdn.alpinelinux.org/alpine/v3.19/main" > /etc/apk/repositories && \
-    echo "https://dl-cdn.alpinelinux.org/alpine/v3.19/community" >> /etc/apk/repositories
+FROM node:20-alpine
 RUN apk add --no-cache \
     ca-certificates-bundle \
     sqlite \
