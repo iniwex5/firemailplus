@@ -20,7 +20,7 @@ import { toast } from 'sonner';
 
 export function EmailContextMenu() {
   const { isOpen, position, target, closeMenu } = useContextMenuStore();
-  const { updateEmail, removeEmail, folders } = useMailboxStore();
+  const { updateEmail, removeEmail, folders, selectedEmails } = useMailboxStore();
   const { initializeReply, initializeReplyAll, initializeForward } = useComposeStore();
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -112,6 +112,21 @@ export function EmailContextMenu() {
             await apiClient.deleteEmail(email.id);
             removeEmail(email.id);
             toast.success('邮件已删除');
+          }
+          break;
+
+        case 'deleteSelected':
+          {
+            const ids = Array.from(selectedEmails);
+            if (ids.length === 0) {
+              toast.error('未选择邮件');
+              break;
+            }
+            const confirmed = confirm(`确定删除已选 ${ids.length} 封邮件吗？此操作不可撤销。`);
+            if (!confirmed) break;
+            await apiClient.batchEmailOperation({ email_ids: ids, operation: 'delete' });
+            ids.forEach((id) => removeEmail(id));
+            toast.success(`已删除 ${ids.length} 封邮件`);
           }
           break;
 
@@ -220,6 +235,16 @@ export function EmailContextMenu() {
       action: 'copy',
     },
     { divider: true },
+    ...(selectedEmails.size > 0
+      ? [
+          {
+            icon: Trash2,
+            label: `删除已选（${selectedEmails.size}）`,
+            action: 'deleteSelected',
+            danger: true,
+          } as const,
+        ]
+      : []),
     {
       icon: Trash2,
       label: '删除',

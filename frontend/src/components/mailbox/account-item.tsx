@@ -56,15 +56,19 @@ export function AccountItem({
     }
   };
 
-  // 处理账户点击
+  // 处理账户点击：仅选择账户，不控制展开
   const handleAccountClick = (event: MouseEvent<HTMLDivElement>) => {
     onAccountClick?.(event, account);
-    setIsExpanded(!isExpanded);
     selectAccount(account);
+  };
 
+  // 切换展开，仅由箭头触发；首次展开时加载文件夹
+  const handleToggleExpand = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
     if (!isExpanded) {
       loadFolders();
     }
+    setIsExpanded(!isExpanded);
   };
 
   // 处理右键菜单
@@ -134,10 +138,15 @@ export function AccountItem({
           ${isDragOver ? 'ring-2 ring-blue-400 dark:ring-blue-500 ring-offset-0' : ''}
         `}
       >
-        {/* 展开/折叠图标 */}
-        <div className="flex-shrink-0">
+        {/* 展开/折叠图标：仅箭头按钮控制 */}
+        <button
+          type="button"
+          onClick={handleToggleExpand}
+          className="flex-shrink-0 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+          aria-label={isExpanded ? '折叠账户' : '展开账户'}
+        >
           {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-        </div>
+        </button>
 
         {/* 状态指示器 */}
         <div className="flex-shrink-0">{getStatusIndicator()}</div>

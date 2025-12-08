@@ -16,6 +16,8 @@ interface ContextMenuProps {
   onCreateGroup?: () => void;
   onRenameGroup?: (groupId: number) => void;
   onDeleteGroup?: (groupId: number) => void;
+  onDeleteSelectedAccounts?: () => void;
+  selectedAccountsCount?: number;
 }
 
 export function ContextMenu({
@@ -28,6 +30,8 @@ export function ContextMenu({
   onCreateGroup,
   onRenameGroup,
   onDeleteGroup,
+  onDeleteSelectedAccounts,
+  selectedAccountsCount = 0,
 }: ContextMenuProps) {
   const { isOpen, position, target, closeMenu } = useContextMenuStore();
   const menuRef = useRef<HTMLDivElement>(null);
@@ -114,6 +118,12 @@ export function ContextMenu({
         case 'createGroup':
           if (target.type === 'sidebar') {
             onCreateGroup?.();
+          }
+          break;
+
+        case 'deleteSelectedAccounts':
+          if (target.type === 'sidebar') {
+            onDeleteSelectedAccounts?.();
           }
           break;
 
@@ -211,6 +221,14 @@ export function ContextMenu({
         label: '新建分组',
         action: 'createGroup',
       });
+      if (selectedAccountsCount > 0) {
+        items.push({
+          icon: Trash2,
+          label: `删除已选账户（${selectedAccountsCount}）`,
+          action: 'deleteSelectedAccounts',
+          danger: true,
+        });
+      }
     }
 
     return items;

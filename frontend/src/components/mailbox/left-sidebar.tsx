@@ -34,6 +34,7 @@ export function LeftSidebar() {
   const [collapsedGroups, setCollapsedGroups] = useState<Set<GroupKey>>(new Set());
   const [draggingGroupForSortId, setDraggingGroupForSortId] = useState<number | null>(null);
   const [groupSortHoverId, setGroupSortHoverId] = useState<number | 'end' | null>(null);
+  const [anchorAccountId, setAnchorAccountId] = useState<number | null>(null);
 
   const isAccountDragEvent = useCallback(
     (event: ReactDragEvent<HTMLElement>) =>
@@ -157,22 +158,55 @@ export function LeftSidebar() {
 
   const handleAccountSelection = useCallback(
     (account: EmailAccount, event: ReactMouseEvent<HTMLDivElement>) => {
+      const isToggle = event.metaKey || event.ctrlKey;
+
       setSelectedAccountIds((prev) => {
-        const next = new Set(prev);
-        const shouldToggle = event.metaKey || event.ctrlKey || prev.size > 0;
-        if (shouldToggle) {
+        // Shift 连选：需存在锚点且同组
+        if (event.shiftKey && anchorAccountId !== null) {
+          const anchor = accounts.find((a) => a.id === anchorAccountId);
+          if (anchor && (anchor.group_id ?? null) === (account.group_id ?? null)) {
+            const groupId = account.group_id ?? null;
+            const list = groupedAccounts.get(groupId) ?? [];
+            const ids = list.map((a) => a.id);
+            const start = ids.indexOf(anchorAccountId);
+            const end = ids.indexOf(account.id);
+            if (start !== -1 && end !== -1) {
+              const [from, to] = start < end ? [start, end] : [end, start];
+              const range = ids.slice(from, to + 1);
+              return new Set(range);
+            }
+          }
+          // 无法形成区间时退化为单选当前
+          setAnchorAccountId(account.id);
+          return new Set([account.id]);
+        }
+
+        // Ctrl/⌘ 切换
+        if (isToggle) {
+          const next = new Set(prev);
           if (next.has(account.id)) {
             next.delete(account.id);
           } else {
             next.add(account.id);
           }
+          // 切换不更新锚点
           return next.size > 0 ? next : new Set([account.id]);
         }
+
+        // 纯单选：更新锚点
+        setAnchorAccountId(account.id);
         return new Set([account.id]);
       });
     },
-    []
+    [accounts, groupedAccounts, anchorAccountId]
   );
+
+  // 当清空选择时同步清空锚点
+  useEffect(() => {
+    if (selectedAccountIds.size === 0 && anchorAccountId !== null) {
+      setAnchorAccountId(null);
+    }
+  }, [selectedAccountIds, anchorAccountId]);
 
   const handleCreateGroup = useCallback(async () => {
     const name = prompt('请输入分组名称');
@@ -922,6 +956,26 @@ export function LeftSidebar() {
         onCreateGroup={handleCreateGroup}
         onRenameGroup={handleRenameGroup}
         onDeleteGroup={handleDeleteGroup}
+        selectedAccountsCount={selectedAccountIds.size}
+        onDeleteSelectedAccounts={async () => {
+          const ids = Array.from(selectedAccountIds);
+          if (ids.length === 0) return;
+          const confirmed = confirm(
+            `确定删除已选 ${ids.length} 个账户吗？此操作不可撤销，将删除其所有邮件数据。`
+          );
+          if (!confirmed) return;
+          try {
+            for (const id of ids) {
+              await apiClient.deleteEmailAccount(id);
+              removeAccount(id);
+            }
+            toast.success(`已删除 ${ids.length} 个账户`);
+            setSelectedAccountIds(new Set());
+          } catch (error: any) {
+            console.error('Batch delete accounts failed:', error);
+            toast.error(error.message || '批量删除账户失败');
+          }
+        }}
       />
 
       <AccountSettingsModal
