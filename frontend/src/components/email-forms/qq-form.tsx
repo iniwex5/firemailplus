@@ -13,6 +13,7 @@ import { ChevronDown, ChevronRight, ExternalLink, Eye, EyeOff } from 'lucide-rea
 import { apiClient } from '@/lib/api';
 import { useMailboxStore } from '@/lib/store';
 import { createWithOverwrite } from '@/lib/account-utils';
+import { useConfirm } from '@/hooks/use-confirm';
 import { toast } from 'sonner';
 import { AccountOptionsSection } from './account-options-section';
 
@@ -63,6 +64,7 @@ export function QQForm({ onSuccess, onCancel }: QQFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
   const { accounts, addAccount } = useMailboxStore();
+  const { confirm, ConfirmDialog } = useConfirm();
 
   const {
     register,
@@ -98,6 +100,7 @@ export function QQForm({ onSuccess, onCancel }: QQFormProps) {
         email: data.email,
         provider: 'qq',
         accounts,
+        confirmFn: (msg) => confirm(msg),
         createFn: () =>
           apiClient.createEmailAccount({
             name: data.name,
@@ -312,6 +315,7 @@ export function QQForm({ onSuccess, onCancel }: QQFormProps) {
           </div>
         </form>
       </CardContent>
+      {ConfirmDialog}
     </Card>
   );
 }

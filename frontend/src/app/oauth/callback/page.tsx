@@ -7,11 +7,13 @@ import { useMailboxStore } from '@/lib/store';
 import { createWithOverwrite } from '@/lib/account-utils';
 import { toast } from 'sonner';
 import { ProtectedRoute } from '@/components/auth/route-guard';
+import { useConfirm } from '@/hooks/use-confirm';
 
 function OAuthCallbackContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { accounts, addAccount } = useMailboxStore();
+  const { confirm, ConfirmDialog } = useConfirm();
   const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
   const [message, setMessage] = useState('正在处理OAuth认证...');
 
@@ -103,6 +105,7 @@ function OAuthCallbackContent() {
           email: accountData.email,
           provider: accountData.provider,
           accounts,
+          confirmFn: (msg) => confirm(msg),
           createFn: () =>
             apiClient.createOAuth2Account({
               name: accountData.name,
@@ -213,6 +216,7 @@ function OAuthCallbackContent() {
           <p className="text-sm text-gray-500 dark:text-gray-400">5秒后自动跳转到添加邮箱页面...</p>
         )}
       </div>
+      {ConfirmDialog}
     </div>
   );
 }

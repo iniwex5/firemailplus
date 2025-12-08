@@ -47,12 +47,13 @@ export async function createWithOverwrite(
       | ReturnType<typeof apiClient.createCustomEmailAccount>
       | ReturnType<typeof apiClient.createOAuth2Account>
       | ReturnType<typeof apiClient.createManualOAuth2Account>;
+    confirmFn?: (message?: string) => Promise<boolean>;
   }
 ): Promise<any> {
-  const { email, provider, accounts, createFn } = params;
+  const { email, provider, accounts, createFn, confirmFn } = params;
   const exists = findExistingAccount(accounts, email, provider);
   if (exists) {
-    const ok = await confirmOverwriteOnce();
+    const ok = await (confirmFn ? confirmFn('该邮箱已存在，是否覆盖现有账户？') : confirmOverwriteOnce());
     if (!ok) {
       return { success: false, message: '已取消覆盖' };
     }
@@ -66,7 +67,7 @@ export async function createWithOverwrite(
     return res;
   } catch (e: any) {
     if (e?.status === 409) {
-      const ok = await confirmOverwriteOnce();
+      const ok = await (confirmFn ? confirmFn('该邮箱已存在，是否覆盖现有账户？') : confirmOverwriteOnce());
       if (!ok) return { success: false, message: '已取消覆盖' };
       const deleted = await deleteExistingAccountByEmail(accounts, email, provider);
       if (!deleted) return { success: false, message: '删除现有账户失败' };

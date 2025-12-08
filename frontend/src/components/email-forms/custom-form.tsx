@@ -20,6 +20,7 @@ import { ChevronDown, ChevronRight, Eye, EyeOff, Server, Mail, Shield } from 'lu
 import { apiClient } from '@/lib/api';
 import { useMailboxStore } from '@/lib/store';
 import { createWithOverwrite } from '@/lib/account-utils';
+import { useConfirm } from '@/hooks/use-confirm';
 import { toast } from 'sonner';
 import { AccountOptionsSection } from './account-options-section';
 
@@ -109,6 +110,7 @@ export function CustomForm({ onSuccess, onCancel }: CustomFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
   const { accounts, addAccount } = useMailboxStore();
+  const { confirm, ConfirmDialog } = useConfirm();
 
   const {
     register,
@@ -173,6 +175,7 @@ export function CustomForm({ onSuccess, onCancel }: CustomFormProps) {
       const response = await createWithOverwrite({
         email: requestData.email,
         accounts,
+        confirmFn: (msg) => confirm(msg),
         createFn: () => apiClient.createCustomEmailAccount(requestData),
       });
 
@@ -594,6 +597,7 @@ export function CustomForm({ onSuccess, onCancel }: CustomFormProps) {
           </div>
         </form>
       </CardContent>
+      {ConfirmDialog}
     </Card>
   );
 }
