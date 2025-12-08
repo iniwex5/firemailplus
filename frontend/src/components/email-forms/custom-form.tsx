@@ -19,6 +19,7 @@ import {
 import { ChevronDown, ChevronRight, Eye, EyeOff, Server, Mail, Shield } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { useMailboxStore } from '@/lib/store';
+import { createWithOverwrite } from '@/lib/account-utils';
 import { toast } from 'sonner';
 import { AccountOptionsSection } from './account-options-section';
 
@@ -107,7 +108,7 @@ export function CustomForm({ onSuccess, onCancel }: CustomFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
-  const { addAccount } = useMailboxStore();
+  const { accounts, addAccount } = useMailboxStore();
 
   const {
     register,
@@ -169,7 +170,11 @@ export function CustomForm({ onSuccess, onCancel }: CustomFormProps) {
         requestData.group_id = data.group_id ? Number(data.group_id) : null;
       }
 
-      const response = await apiClient.createCustomEmailAccount(requestData);
+      const response = await createWithOverwrite({
+        email: requestData.email,
+        accounts,
+        createFn: () => apiClient.createCustomEmailAccount(requestData),
+      });
 
       if (response.success && response.data) {
         addAccount(response.data);

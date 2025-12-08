@@ -5,6 +5,7 @@
 import { useState, useCallback } from 'react';
 import { apiClient } from '@/lib/api';
 import { useMailboxStore } from '@/lib/store';
+import { createWithOverwrite } from '@/lib/account-utils';
 import { toast } from 'sonner';
 
 export interface BatchAccountData {
@@ -118,7 +119,7 @@ export function useBatchAddAccounts() {
     results: [],
   });
 
-  const { addAccount } = useMailboxStore();
+  const { accounts, addAccount } = useMailboxStore();
 
   // 处理单个账户
   const processAccount = async (
@@ -128,16 +129,22 @@ export function useBatchAddAccounts() {
     groupId?: number | null
   ): Promise<BatchProcessResult> => {
     try {
-      const response = await apiClient.createManualOAuth2Account({
-        name: accountName,
+      const response = await createWithOverwrite({
         email: accountData.email,
         provider: 'outlook',
-        client_id: accountData.client_id,
-        refresh_token: accountData.refresh_token,
-        scope:
-          'https://outlook.office.com/IMAP.AccessAsUser.All https://outlook.office.com/SMTP.Send offline_access',
-        proxy_url: proxyUrl,
-        group_id: groupId ?? null,
+        accounts,
+        createFn: () =>
+          apiClient.createManualOAuth2Account({
+            name: accountName,
+            email: accountData.email,
+            provider: 'outlook',
+            client_id: accountData.client_id,
+            refresh_token: accountData.refresh_token,
+            scope:
+              'https://outlook.office.com/IMAP.AccessAsUser.All https://outlook.office.com/SMTP.Send offline_access',
+            proxy_url: proxyUrl,
+            group_id: groupId ?? null,
+          }),
       });
 
       if (response.success && response.data) {
@@ -154,13 +161,13 @@ export function useBatchAddAccounts() {
           data: accountData,
         };
       }
-    } catch (error: any) {
-      return {
-        success: false,
-        error: error.message || '网络错误',
-        data: accountData,
-      };
-    }
+      } catch (error: any) {
+        return {
+          success: false,
+          error: error.message || '网络错误',
+          data: accountData,
+        };
+      }
   };
 
   // 批量处理账户

@@ -5,6 +5,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { apiClient, type CreateAccountRequest } from '@/lib/api';
+import { createWithOverwrite } from '@/lib/account-utils';
 import { useMailboxStore } from '@/lib/store';
 
 export function useEmailAccounts() {
@@ -27,7 +28,13 @@ export function useEmailAccounts() {
 
   // 创建邮箱账户
   const createAccountMutation = useMutation({
-    mutationFn: (account: CreateAccountRequest) => apiClient.createEmailAccount(account),
+    mutationFn: (account: CreateAccountRequest) =>
+      createWithOverwrite({
+        email: account.email,
+        provider: account.provider,
+        accounts,
+        createFn: () => apiClient.createEmailAccount(account),
+      }),
     onSuccess: (response) => {
       if (response.success && response.data) {
         addAccount(response.data);

@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api';
 import { useMailboxStore } from '@/lib/store';
+import { createWithOverwrite } from '@/lib/account-utils';
 
 interface OAuth2WindowOptions {
   width?: number;
@@ -22,7 +23,7 @@ interface OAuth2CallbackData {
 }
 
 export function useOAuth2() {
-  const { addAccount } = useMailboxStore();
+  const { accounts, addAccount } = useMailboxStore();
   const queryClient = useQueryClient();
 
   // Gmail OAuth2 认证
@@ -66,7 +67,13 @@ export function useOAuth2() {
       client_id: string; // 必需，用于token刷新
       proxy_url?: string; // 代理配置
       group_id?: number | null;
-    }) => apiClient.createOAuth2Account(account),
+    }) =>
+      createWithOverwrite({
+        email: account.email,
+        provider: account.provider,
+        accounts,
+        createFn: () => apiClient.createOAuth2Account(account),
+      }),
     onSuccess: (response) => {
       if (response.success && response.data) {
         addAccount(response.data);
@@ -93,7 +100,13 @@ export function useOAuth2() {
       token_url?: string;
       proxy_url?: string;
       group_id?: number | null;
-    }) => apiClient.createManualOAuth2Account(account),
+    }) =>
+      createWithOverwrite({
+        email: account.email,
+        provider: account.provider,
+        accounts,
+        createFn: () => apiClient.createManualOAuth2Account(account),
+      }),
     onSuccess: (response) => {
       if (response.success && response.data) {
         addAccount(response.data);

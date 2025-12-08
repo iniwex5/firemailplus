@@ -4,13 +4,14 @@ import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api';
 import { useMailboxStore } from '@/lib/store';
+import { createWithOverwrite } from '@/lib/account-utils';
 import { toast } from 'sonner';
 import { ProtectedRoute } from '@/components/auth/route-guard';
 
 function OAuthCallbackContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { addAccount } = useMailboxStore();
+  const { accounts, addAccount } = useMailboxStore();
   const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
   const [message, setMessage] = useState('正在处理OAuth认证...');
 
@@ -98,17 +99,23 @@ function OAuthCallbackContent() {
         }
 
         // 创建邮箱账户
-        const createResponse = await apiClient.createOAuth2Account({
-          name: accountData.name,
+        const createResponse: any = await createWithOverwrite({
           email: accountData.email,
           provider: accountData.provider,
-          access_token: tokenData.access_token,
-          refresh_token: tokenData.refresh_token,
-          expires_at: Date.now() + tokenData.expires_in * 1000,
-          scope: tokenData.scope,
-          client_id: tokenClientId,
-          proxy_url: accountData.proxy_url || '',
-          group_id: accountData.group_id ?? null,
+          accounts,
+          createFn: () =>
+            apiClient.createOAuth2Account({
+              name: accountData.name,
+              email: accountData.email,
+              provider: accountData.provider,
+              access_token: tokenData.access_token,
+              refresh_token: tokenData.refresh_token!,
+              expires_at: Date.now() + tokenData.expires_in * 1000,
+              scope: tokenData.scope,
+              client_id: tokenClientId,
+              proxy_url: accountData.proxy_url || '',
+              group_id: accountData.group_id ?? null,
+            }),
         });
 
         if (createResponse.success && createResponse.data) {

@@ -12,6 +12,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { ChevronDown, ChevronRight, ExternalLink, Eye, EyeOff } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { useMailboxStore } from '@/lib/store';
+import { createWithOverwrite } from '@/lib/account-utils';
 import { toast } from 'sonner';
 import { AccountOptionsSection } from './account-options-section';
 
@@ -61,7 +62,7 @@ export function GmailPasswordForm({ onSuccess, onCancel }: GmailPasswordFormProp
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
-  const { addAccount } = useMailboxStore();
+  const { accounts, addAccount } = useMailboxStore();
 
   const {
     register,
@@ -93,14 +94,20 @@ export function GmailPasswordForm({ onSuccess, onCancel }: GmailPasswordFormProp
       // 移除密码中的空格
       const cleanPassword = data.password.replace(/\s/g, '');
 
-      const response = await apiClient.createEmailAccount({
-        name: data.name,
+      const response = await createWithOverwrite({
         email: data.email,
         provider: 'gmail',
-        auth_method: 'password',
-        password: cleanPassword,
-        proxy_url: data.proxy_url,
-        group_id: data.group_id ? Number(data.group_id) : null,
+        accounts,
+        createFn: () =>
+          apiClient.createEmailAccount({
+            name: data.name,
+            email: data.email,
+            provider: 'gmail',
+            auth_method: 'password',
+            password: cleanPassword,
+            proxy_url: data.proxy_url,
+            group_id: data.group_id ? Number(data.group_id) : null,
+          }),
       });
 
       if (response.success && response.data) {
