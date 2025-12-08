@@ -110,8 +110,13 @@ class ApiClient {
       ...options,
     };
 
-    try {
-      const response = await fetch(url, config);
+    const maxRetries = 2;
+    const baseDelayMs = 250;
+    let attempt = 0;
+    let lastError: any = null;
+    while (attempt <= maxRetries) {
+      try {
+        const response = await fetch(url, config);
 
       // 尝试解析JSON响应
       let data;
@@ -121,47 +126,56 @@ class ApiClient {
         throw new Error(`服务器响应格式错误: ${response.status}`);
       }
 
-      if (!response.ok) {
-        // 根据状态码提供更友好的错误消息
-        let errorMessage = data.message || data.error || '请求失败';
+        if (!response.ok) {
+          // 根据状态码提供更友好的错误消息
+          let errorMessage = data.message || data.error || '请求失败';
 
-        switch (response.status) {
-          case 401:
-            errorMessage = data.message || '登录已过期，请重新登录';
-            // 401 错误表示认证失败，需要清除认证状态
-            if (typeof window !== 'undefined') {
-              // 清除认证存储
-              localStorage.removeItem('auth-storage');
-              // 延迟重定向，让错误处理完成
-              setTimeout(() => {
-                window.location.href = '/login';
-              }, 100);
+          switch (response.status) {
+            case 401:
+              errorMessage = data.message || '登录已过期，请重新登录';
+              // 401 错误表示认证失败，需要清除认证状态
+              if (typeof window !== 'undefined') {
+                // 清除认证存储
+                localStorage.removeItem('auth-storage');
+                // 延迟重定向，让错误处理完成
+                setTimeout(() => {
+                  window.location.href = '/login';
+                }, 100);
+              }
+              throw Object.assign(new Error(errorMessage), { status: 401, data });
+            case 403:
+              errorMessage = data.message || '账户已被禁用';
+              throw Object.assign(new Error(errorMessage), { status: 403, data });
+            case 404:
+              errorMessage = data.message || '请求的资源不存在';
+              throw Object.assign(new Error(errorMessage), { status: 404, data });
+            case 500:
+              errorMessage = data.message || '服务器内部错误';
+              lastError = Object.assign(new Error(errorMessage), { status: 500, data });
+              throw lastError;
+            default:
+              errorMessage = data.message || `请求失败 (${response.status})`;
+              throw Object.assign(new Error(errorMessage), { status: response.status, data });
             }
-            break;
-          case 403:
-            errorMessage = data.message || '账户已被禁用';
-            break;
-          case 404:
-            errorMessage = data.message || '请求的资源不存在';
-            break;
-          case 500:
-            errorMessage = data.message || '服务器内部错误';
-            break;
-          default:
-            errorMessage = data.message || `请求失败 (${response.status})`;
         }
 
-        const error = new Error(errorMessage);
-        (error as any).status = response.status;
-        (error as any).data = data;
+        return data;
+      } catch (error: any) {
+        lastError = error;
+        const status = error?.status;
+        const shouldRetry =
+          (!status && error?.name === 'TypeError') ||
+          (status && status >= 500 && status < 600);
+        if (attempt < maxRetries && shouldRetry) {
+          const delay = baseDelayMs * Math.pow(2, attempt);
+          await new Promise((res) => setTimeout(res, delay));
+          attempt++;
+          continue;
+        }
         throw error;
       }
-
-      return data;
-    } catch (error) {
-      console.error('API request failed:', error);
-      throw error;
     }
+    throw lastError || new Error('请求失败');
   }
 
   // 认证相关 API

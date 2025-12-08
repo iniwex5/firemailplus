@@ -103,7 +103,6 @@ export function EmailContent({
     }
 
     if (isHtmlContent) {
-      // 使用DOMPurify清理HTML内容，确保安全
       const sanitizedHtml = DOMPurify.sanitize(content, {
         ALLOWED_TAGS: [
           // 基础文本标签
@@ -232,16 +231,28 @@ export function EmailContent({
           'rightmargin',
           'bottommargin',
         ],
-        ALLOWED_URI_REGEXP:
-          /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|data):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
-        // 允许更多样式属性
+        ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|cid):|data:image)/i,
         ALLOW_DATA_ATTR: true,
-        // 保留空白字符
         KEEP_CONTENT: true,
       });
-
-
-      // 渲染HTML内容
+      let processedHtml = sanitizedHtml;
+      if (typeof window !== 'undefined') {
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = sanitizedHtml;
+        const anchors = wrapper.querySelectorAll('a[href]');
+        anchors.forEach((a) => {
+          a.setAttribute('target', '_blank');
+          a.setAttribute('rel', 'noopener noreferrer');
+        });
+        const imgs = wrapper.querySelectorAll('img[src]');
+        imgs.forEach((img) => {
+          const src = img.getAttribute('src') || '';
+          if (src.startsWith('data:') && !src.startsWith('data:image')) {
+            img.removeAttribute('src');
+          }
+        });
+        processedHtml = wrapper.innerHTML;
+      }
       return (
         <div
           className={
@@ -250,7 +261,7 @@ export function EmailContent({
               : 'email-html-content prose prose-sm max-w-none prose-gray dark:prose-invert email-styled'
           }
           dangerouslySetInnerHTML={{
-            __html: sanitizedHtml,
+            __html: processedHtml,
           }}
           style={{
             wordBreak: 'break-word',

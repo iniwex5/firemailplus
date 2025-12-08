@@ -149,14 +149,12 @@ func (e *Environment) IsDevelopmentMode() bool {
 
 // ShouldMockEmailProviders 是否应该模拟邮件提供商
 func (e *Environment) ShouldMockEmailProviders() bool {
-	// 强制禁用模拟，始终使用真实环境
-	return false
+    return e.MockEmailProviders
 }
 
 // ShouldEnableRealEmailSync 是否应该启用真实邮件同步
 func (e *Environment) ShouldEnableRealEmailSync() bool {
-	// 强制启用真实邮件同步
-	return true
+    return e.EnableRealEmailSync
 }
 
 // ShouldEnableEnhancedDedup 是否应该启用增强去重

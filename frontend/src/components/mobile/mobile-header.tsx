@@ -28,6 +28,7 @@ import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import type { Email } from '@/types/email';
 import { SUPPORTED_LANGUAGES, LanguageCode, getLanguageName } from '@/lib/translate';
 import { useRouter } from 'next/navigation';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 interface MobileHeaderProps {
   title: string;

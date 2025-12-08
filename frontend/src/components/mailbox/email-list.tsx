@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback, useState, useMemo } from 'react';
+import { useEffect, useCallback, useState, useMemo, useRef } from 'react';
 import { useMailboxStore } from '@/lib/store';
 import { useMailboxSSE } from '@/hooks/use-sse';
 import { EmailListHeader } from './email-list-header';
@@ -10,7 +10,7 @@ import { EmailContextMenu } from './email-context-menu';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { apiClient } from '@/lib/api';
-import { useLazyLoad } from '@/hooks/use-performance';
+import { useLazyLoad, useVirtualization } from '@/hooks/use-performance';
 import type { Email } from '@/types/email';
 
 // 邮件列表组件属性
@@ -213,6 +213,32 @@ export function EmailList({
   const currentIsLoading = externalLoading !== undefined ? externalLoading : isLoading;
   const currentTotal = totalCount !== undefined ? totalCount : total;
 
+  // 虚拟化列表配置
+  const ITEM_HEIGHT = 76;
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerHeight, setContainerHeight] = useState<number>(600);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const h = entry.contentRect.height;
+        if (h > 0) setContainerHeight(Math.floor(h));
+      }
+    });
+    ro.observe(el);
+    setContainerHeight(el.clientHeight || 600);
+    return () => ro.disconnect();
+  }, []);
+
+  const { visibleItems, totalHeight, offsetY, setScrollTop } = useVirtualization(
+    currentEmails,
+    ITEM_HEIGHT,
+    containerHeight,
+    5
+  );
+
   // 处理邮件点击
   const handleEmailClick = (email: Email) => {
     console.log('📧 [EmailList] 邮件被点击:', {
@@ -235,21 +261,27 @@ export function EmailList({
       <EmailListHeader title={getTitle()} totalCount={currentTotal} />
 
       {/* 邮件列表内容 */}
-      <div className="flex-1 overflow-y-auto">
+      <div
+        className="flex-1 overflow-y-auto"
+        ref={containerRef}
+        onScroll={(e) => setScrollTop((e.target as HTMLElement).scrollTop)}
+      >
         {currentIsLoading ? (
           <LoadingSkeleton count={10} />
         ) : currentEmails.length > 0 ? (
-          <div>
-            {currentEmails.map((email, index) => (
-              <EmailItem
-                key={email.id}
-                email={email}
-                isSelected={selectedEmailId === email.id}
-                onClick={() => handleEmailClick(email)}
-                ref={index === currentEmails.length - 1 ? lastElementRef : undefined}
-              />
-            ))}
-
+          <div style={{ height: totalHeight, position: 'relative' }}>
+            <div style={{ transform: `translateY(${offsetY}px)` }}>
+              {visibleItems.map(({ item: email, index }, i) => (
+                <EmailItem
+                  key={email.id}
+                  email={email}
+                  isSelected={selectedEmailId === email.id}
+                  onClick={() => handleEmailClick(email)}
+                  ref={index === currentEmails.length - 1 ? lastElementRef : undefined}
+                />
+              ))}
+            </div>
+          
             {/* 加载更多指示器 */}
             {isLoadingMore && (
               <div className="p-4 text-center">
