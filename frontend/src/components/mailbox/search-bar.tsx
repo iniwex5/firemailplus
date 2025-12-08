@@ -2,9 +2,10 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, X, Filter, Menu, Plus } from 'lucide-react';
+import { Search, X, Filter, Menu, Plus, Home } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { useMailboxStore, useUIStore } from '@/lib/store';
 
 interface SearchBarProps {
@@ -87,6 +88,17 @@ export function SearchBar({
             <Menu className="w-5 h-5" />
           </Button>
         )}
+
+        {/* 主页按钮（搜索框左侧） */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="p-2 h-auto"
+          title="主页"
+          onClick={() => router.push('/mailbox')}
+        >
+          <Home className="w-4 h-4" />
+        </Button>
 
         {/* 搜索框容器 */}
         <div className="flex-1 relative">
@@ -180,6 +192,9 @@ export function SearchBar({
             <Filter className="w-4 h-4" />
           </Button>
         )}
+
+        {/* 主题切换 */}
+        <ThemeToggle />
 
         {/* 添加邮箱按钮 - 只在桌面端显示 */}
         {!isMobile && (

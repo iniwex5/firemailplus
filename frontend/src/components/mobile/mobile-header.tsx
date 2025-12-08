@@ -11,6 +11,7 @@ import {
   Star,
   Languages,
 } from 'lucide-react';
+import { Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUIStore } from '@/lib/store';
 import {
@@ -26,6 +27,7 @@ import {
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import type { Email } from '@/types/email';
 import { SUPPORTED_LANGUAGES, LanguageCode, getLanguageName } from '@/lib/translate';
+import { useRouter } from 'next/navigation';
 
 interface MobileHeaderProps {
   title: string;
@@ -52,6 +54,7 @@ export function MobileHeader({
   onMore,
   rightContent,
 }: MobileHeaderProps) {
+  const router = useRouter();
   const { navigateToSearch, navigateToCompose, goBack } = useMobileNavigation();
 
   const handleBack = () => {
@@ -102,6 +105,18 @@ export function MobileHeader({
         {/* 右侧区域 */}
         <div className="flex items-center gap-2 flex-shrink-0">
           {rightContent}
+
+          <ThemeToggle />
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push('/mailbox')}
+            className="p-2 h-auto"
+            title="主页"
+          >
+            <Home className="w-5 h-5" />
+          </Button>
 
           {showSearch && (
             <Button variant="ghost" size="sm" onClick={handleSearch} className="p-2 h-auto">
