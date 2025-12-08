@@ -25,7 +25,7 @@ import { AccountOptionsSection } from './account-options-section';
 
 const outlookBatchSchema = z.object({
   batchData: z.string().min(1, '请输入批量数据'),
-  namePrefix: z.string().min(1, '请输入账户名称前缀'),
+  namePrefix: z.string().optional(),
   // 代理配置
   proxy_url: z.string().optional(),
   group_id: z.string().optional(),
@@ -55,7 +55,7 @@ export function OutlookBatchForm({ onSuccess, onCancel }: OutlookBatchFormProps)
   } = useForm<OutlookBatchForm>({
     resolver: zodResolver(outlookBatchSchema),
     defaultValues: {
-      namePrefix: 'Outlook账户',
+      namePrefix: '',
       group_id: '',
     },
   });
@@ -157,8 +157,7 @@ export function OutlookBatchForm({ onSuccess, onCancel }: OutlookBatchFormProps)
                 <p className="text-sm text-red-500 mt-1">{errors.namePrefix.message}</p>
               )}
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                账户将命名为：{watch('namePrefix', 'Outlook账户')} 1,{' '}
-                {watch('namePrefix', 'Outlook账户')} 2...
+                不填前缀时将使用邮箱地址作为别名
               </p>
             </div>
 

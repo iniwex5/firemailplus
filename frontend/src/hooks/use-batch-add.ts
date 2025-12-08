@@ -167,7 +167,7 @@ export function useBatchAddAccounts() {
   const processBatch = useCallback(
     async (
       accounts: BatchAccountData[],
-      namePrefix: string = 'Outlook账户',
+      namePrefix: string = '',
       proxyUrl?: string,
       groupId?: number | null
     ) => {
@@ -200,7 +200,10 @@ export function useBatchAddAccounts() {
 
           // 并发处理当前批次
           const batchPromises = batch.map((account, batchIndex) => {
-            const accountName = `${namePrefix} ${i + batchIndex + 1}`;
+            const trimmedPrefix = (namePrefix ?? '').trim();
+            const accountName = trimmedPrefix
+              ? `${trimmedPrefix} ${i + batchIndex + 1}`
+              : account.email;
             return processAccount(account, accountName, proxyUrl, groupId);
           });
 
@@ -267,7 +270,7 @@ export function useBatchAddAccounts() {
 
   // 重试失败的账户
   const retryFailed = useCallback(
-    async (namePrefix: string = 'Outlook账户', proxyUrl?: string, groupId?: number | null) => {
+    async (namePrefix: string = '', proxyUrl?: string, groupId?: number | null) => {
       const failedAccounts = progress.results
         .filter((result) => !result.success)
         .map((result) => result.data);

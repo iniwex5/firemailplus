@@ -240,28 +240,17 @@ export function EmailContent({
         KEEP_CONTENT: true,
       });
 
-      const cleanedHtml = (() => {
-        if (!readabilityWhiteCard) return sanitizedHtml;
-        let html = sanitizedHtml;
-        html = html.replace(/\sbgcolor=("[^"]*"|'[^']*'|[^\s>]+)/gi, '');
-        html = html.replace(/\sbackground=("[^"]*"|'[^']*'|[^\s>]+)/gi, '');
-        html = html.replace(/style=("|')(.*?)("|')/gi, (m, q1, styles, q2) => {
-          const updated = styles
-            .replace(/background(?:-color)?\s*:[^;]+;?/gi, '')
-            .replace(/background\s*:[^;]+;?/gi, '');
-          return `style=${q1}${updated}${q2}`;
-        });
-        return html;
-      })();
 
       // 渲染HTML内容
       return (
         <div
-          className={`email-html-content prose prose-sm max-w-none prose-gray ${
-            readabilityWhiteCard ? '' : 'dark:prose-invert'
-          }`}
+          className={
+            readabilityWhiteCard
+              ? 'email-html-content max-w-none'
+              : 'email-html-content prose prose-sm max-w-none prose-gray dark:prose-invert email-styled'
+          }
           dangerouslySetInnerHTML={{
-            __html: cleanedHtml,
+            __html: sanitizedHtml,
           }}
           style={{
             wordBreak: 'break-word',
