@@ -7,7 +7,6 @@ import { TranslationBar } from './translation-bar';
 import { translateText, translateHtmlContent, LanguageCode, detectLanguage } from '@/lib/translate';
 import { toast } from 'sonner';
 import '@/styles/email-content.css';
-import { useUIStore } from '@/lib/store';
 
 interface EmailContentProps {
   email: Email;
@@ -92,7 +91,6 @@ export function EmailContent({
   // 渲染邮件内容
   const renderContent = () => {
     const content = showTranslation && translatedContent ? translatedContent : originalContent;
-    const { readabilityWhiteCard } = useUIStore.getState();
 
     if (!content) {
       return (
@@ -255,13 +253,9 @@ export function EmailContent({
       }
       return (
         <div
-          className={
-            readabilityWhiteCard
-              ? 'email-html-content max-w-none'
-              : 'email-html-content prose prose-sm max-w-none prose-gray dark:prose-invert email-styled'
-          }
+          className={'email-html-content max-w-none'}
           dangerouslySetInnerHTML={{
-            __html: processedHtml,
+            __html: sanitizedHtml,
           }}
           style={{
             wordBreak: 'break-word',
@@ -295,7 +289,7 @@ export function EmailContent({
 
       {/* 邮件正文 */}
       <div className="flex-1 overflow-y-auto">
-        <div className={`p-6 ${useUIStore.getState().readabilityWhiteCard ? 'email-readability' : ''}`}>
+        <div className={`p-6 email-readability`}>
           {isTranslating ? (
             // 翻译加载状态
             <div className="space-y-4">

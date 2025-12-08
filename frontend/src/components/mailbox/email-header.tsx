@@ -4,7 +4,6 @@ import { Reply, ReplyAll, Forward, Archive, Trash2, Star, MoreHorizontal } from 
 import { Button } from '@/components/ui/button';
 import { Email, parseEmailAddress, parseEmailAddresses, formatEmailAddress } from '@/types/email';
 import { TranslateButton } from './translate-button';
-import { useUIStore } from '@/lib/store';
 import { LanguageCode } from '@/lib/translate';
 import { useComposeStore, useMailboxStore } from '@/lib/store';
 import { apiClient } from '@/lib/api';
@@ -170,17 +169,6 @@ export function EmailHeader({
                 originalText={email.text_body || email.html_body}
               />
 
-              {/* 白底阅读开关 */}
-              <button
-                className="px-2 h-8 text-xs rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300"
-                onClick={() => {
-                  const { readabilityWhiteCard } = useUIStore.getState();
-                  useUIStore.getState().setReadabilityWhiteCard(!readabilityWhiteCard);
-                }}
-                title="切换白底阅读"
-              >
-                白底阅读
-              </button>
 
               {/* 回复按钮 */}
               <Button variant="ghost" size="sm" className="p-2 h-8" onClick={handleReply}>

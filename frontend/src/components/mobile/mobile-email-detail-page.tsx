@@ -17,7 +17,6 @@ import { EmailDetail } from '@/components/mailbox/email-detail';
 import { apiClient } from '@/lib/api';
 import { toast } from 'sonner';
 import { LanguageCode } from '@/lib/translate';
-import { useUIStore } from '@/lib/store';
 
 interface MobileEmailDetailPageProps {
   emailId: number;
@@ -256,18 +255,6 @@ export function MobileEmailDetailPage({ emailId }: MobileEmailDetailPageProps) {
               <span className="text-xs">删除</span>
             </Button>
 
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                const { readabilityWhiteCard } = useUIStore.getState();
-                useUIStore.getState().setReadabilityWhiteCard(!readabilityWhiteCard);
-              }}
-              className="flex flex-col items-center gap-1 p-3 min-w-0 flex-1"
-            >
-              <div className="w-5 h-5 border border-gray-400 rounded-sm bg-white dark:bg-gray-700" />
-              <span className="text-xs">白底</span>
-            </Button>
           </div>
         </div>
       </MobilePage>
