@@ -109,7 +109,7 @@ export const parseBatchData = (
   return { data, errors };
 };
 
-export function useBatchAddAccounts() {
+export function useBatchAddAccounts(confirmFn?: (message?: string) => Promise<boolean>) {
   const [progress, setProgress] = useState<BatchProgress>({
     total: 0,
     processed: 0,
@@ -133,6 +133,7 @@ export function useBatchAddAccounts() {
         email: accountData.email,
         provider: 'outlook',
         accounts,
+        confirmFn,
         createFn: () =>
           apiClient.createManualOAuth2Account({
             name: accountName,

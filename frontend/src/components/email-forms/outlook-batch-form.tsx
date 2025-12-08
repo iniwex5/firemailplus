@@ -20,6 +20,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { useBatchAddAccounts, parseBatchData } from '@/hooks/use-batch-add';
+import { useConfirm } from '@/hooks/use-confirm';
 import { toast } from 'sonner';
 import { AccountOptionsSection } from './account-options-section';
 
@@ -42,8 +43,8 @@ export function OutlookBatchForm({ onSuccess, onCancel }: OutlookBatchFormProps)
   const [showInstructions, setShowInstructions] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
-
-  const { progress, processBatch, retryFailed, resetProgress } = useBatchAddAccounts();
+  const { confirm, ConfirmDialog } = useConfirm();
+  const { progress, processBatch, retryFailed, resetProgress } = useBatchAddAccounts(confirm);
 
   const {
     register,
@@ -400,6 +401,7 @@ user3@live.com----password3----11111111-2222-3333-4444-555555555555----refresh_t
             )}
           </div>
         </form>
+        {ConfirmDialog}
       </CardContent>
     </Card>
   );
