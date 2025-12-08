@@ -194,7 +194,7 @@ export function useBatchAddAccounts(confirmFn?: (message?: string) => Promise<bo
       });
 
       const results: BatchProcessResult[] = [];
-      const batchSize = 5; // 并发控制，每批最多5个请求
+      const batchSize = confirmFn ? 1 : 5; // 有确认弹窗时串行处理，避免并发阻塞
 
       try {
         for (let i = 0; i < accounts.length; i += batchSize) {
