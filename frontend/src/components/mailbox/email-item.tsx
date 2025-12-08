@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 interface EmailItemProps {
   email: Email;
   isSelected?: boolean;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent) => void;
 }
 
 export const EmailItem = forwardRef<HTMLDivElement, EmailItemProps>(function EmailItem(
@@ -81,10 +81,9 @@ export const EmailItem = forwardRef<HTMLDivElement, EmailItemProps>(function Ema
     }
 
     if (onClick) {
-      // 如果提供了外部点击处理函数，使用它
-      onClick();
+      onClick(e);
+      return;
     } else {
-      // 否则使用默认行为
       selectEmail(email);
     }
 

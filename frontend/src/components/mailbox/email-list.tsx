@@ -55,6 +55,10 @@ export function EmailList({
     appendEmails,
     setLoading,
     setPagination,
+    selectedEmails,
+    toggleEmailSelection,
+    setSelectedEmails,
+    updateEmail,
   } = useMailboxStore();
 
   // SSE 连接，监听新邮件事件
@@ -239,19 +243,37 @@ export function EmailList({
     5
   );
 
-  // 处理邮件点击
-  const handleEmailClick = (email: Email) => {
-    console.log('📧 [EmailList] 邮件被点击:', {
-      emailId: email.id,
-      subject: email.subject,
-      hasOnEmailSelect: !!onEmailSelect,
-    });
+  const [anchorEmailId, setAnchorEmailId] = useState<number | null>(null);
 
+  const handleEmailClick = (email: Email, e: React.MouseEvent) => {
+    const isToggle = e.metaKey || e.ctrlKey;
+    if (e.shiftKey) {
+      if (anchorEmailId !== null) {
+        const ids = (externalEmails || emails).map((em) => em.id);
+        const start = ids.indexOf(anchorEmailId);
+        const end = ids.indexOf(email.id);
+        if (start !== -1 && end !== -1) {
+          const [from, to] = start < end ? [start, end] : [end, start];
+          setSelectedEmails(ids.slice(from, to + 1));
+          return;
+        }
+      }
+      setAnchorEmailId(email.id);
+      setSelectedEmails([email.id]);
+      return;
+    }
+
+    if (isToggle) {
+      toggleEmailSelection(email.id);
+      return;
+    }
+
+    setAnchorEmailId(email.id);
     if (onEmailSelect) {
-      console.log('📧 [EmailList] 使用外部 onEmailSelect 回调');
       onEmailSelect(email.id);
-    } else {
-      console.log('📧 [EmailList] 没有提供 onEmailSelect 回调');
+      if (!email.is_read) {
+        apiClient.markEmailAsRead(email.id).then(() => updateEmail(email.id, { is_read: true })).catch(() => {});
+      }
     }
   };
 
@@ -272,13 +294,13 @@ export function EmailList({
           <div style={{ height: totalHeight, position: 'relative' }}>
             <div style={{ transform: `translateY(${offsetY}px)` }}>
               {visibleItems.map(({ item: email, index }, i) => (
-                <EmailItem
-                  key={email.id}
-                  email={email}
-                  isSelected={selectedEmailId === email.id}
-                  onClick={() => handleEmailClick(email)}
-                  ref={index === currentEmails.length - 1 ? lastElementRef : undefined}
-                />
+              <EmailItem
+                key={email.id}
+                email={email}
+                isSelected={selectedEmailId === email.id}
+                onClick={(e) => handleEmailClick(email, e)}
+                ref={index === currentEmails.length - 1 ? lastElementRef : undefined}
+              />
               ))}
             </div>
           

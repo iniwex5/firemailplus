@@ -96,6 +96,7 @@ interface MailboxState {
   toggleEmailSelection: (emailId: number) => void;
   selectAllEmails: () => void;
   clearSelection: () => void;
+  setSelectedEmails: (ids: number[]) => void;
 
   // 分页操作
   setPage: (page: number) => void;
@@ -345,6 +346,7 @@ export const useMailboxStore = create<MailboxState>((set, get) => ({
       selectedEmails: new Set(state.emails.map((email) => email.id)),
     })),
   clearSelection: () => set({ selectedEmails: new Set() }),
+  setSelectedEmails: (ids) => set({ selectedEmails: new Set(ids) }),
 
   // 分页操作
   setPage: (page) => set({ page }),

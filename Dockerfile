@@ -16,7 +16,7 @@ RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache
 
 COPY backend/ ./
 
-RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo -ldflags '-s -w -extldflags "-static"' -o firemail cmd/firemail/main.go
+RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o firemail cmd/firemail/main.go
 
 # 验证构建结果
 RUN ls -la firemail
@@ -47,6 +47,7 @@ RUN pnpm build
 FROM node:20-alpine
 RUN apk add --no-cache \
     ca-certificates-bundle \
+    sqlite \
     tzdata \
     caddy \
     supervisor
