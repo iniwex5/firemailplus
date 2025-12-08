@@ -204,10 +204,24 @@ export const useMailboxStore = create<MailboxState>((set, get) => ({
         .sort(compareAccountGroups),
     })),
   removeAccount: (id) =>
-    set((state) => ({
-      accounts: state.accounts.filter((acc) => acc.id !== id),
-      selectedAccount: state.selectedAccount?.id === id ? null : state.selectedAccount,
-    })),
+    set((state) => {
+      const nextAccounts = state.accounts.filter((acc) => acc.id !== id);
+      const nextSelectedAccount = state.selectedAccount?.id === id ? null : state.selectedAccount;
+      const clearAll = nextAccounts.length === 0;
+      return {
+        accounts: nextAccounts,
+        selectedAccount: nextSelectedAccount,
+        ...(clearAll
+          ? {
+              selectedFolder: null,
+              emails: [],
+              selectedEmail: null,
+              selectedEmails: new Set(),
+              page: 1,
+            }
+          : {}),
+      };
+    }),
   removeAccountGroup: (id) =>
     set((state) => ({
       accountGroups: state.accountGroups.filter((group) => group.id !== id),

@@ -122,7 +122,7 @@ export function ContextMenu({
           break;
 
         case 'deleteSelectedAccounts':
-          if (target.type === 'sidebar') {
+          if (target.type === 'sidebar' || target.type === 'account') {
             onDeleteSelectedAccounts?.();
           }
           break;
@@ -171,6 +171,14 @@ export function ContextMenu({
           danger: true,
         }
       );
+      if (selectedAccountsCount > 0) {
+        items.push({
+          icon: Trash2,
+          label: `删除已选账户（${selectedAccountsCount}）`,
+          action: 'deleteSelectedAccounts',
+          danger: true,
+        });
+      }
     } else if (target.type === 'folder') {
       items.push(
         {

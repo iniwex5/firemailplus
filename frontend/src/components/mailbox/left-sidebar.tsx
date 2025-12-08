@@ -19,7 +19,7 @@ const GROUP_DRAG_MIME = 'application/x-group-id';
 const COLLAPSED_GROUPS_STORAGE_KEY = 'mailboxCollapsedGroups';
 
 export function LeftSidebar() {
-  const { accounts, accountGroups, setAccounts, setAccountGroups, removeAccount } =
+  const { accounts, accountGroups, setAccounts, setAccountGroups, removeAccount, resetState } =
     useMailboxStore();
   const { openMenu } = useContextMenuStore();
 
@@ -656,6 +656,9 @@ export function LeftSidebar() {
         const response = await apiClient.deleteEmailAccount(targetId);
         if (response.success) {
           removeAccount(targetId);
+          if (accounts.length === 1) {
+            resetState();
+          }
           toast.success('账户已删除');
         } else {
           throw new Error(response.message || '删除失败');
@@ -665,7 +668,7 @@ export function LeftSidebar() {
         toast.error(error.message || '删除账户失败');
       }
     },
-    [accounts, removeAccount]
+    [accounts, removeAccount, resetState]
   );
 
   const renderGroupHeader = useCallback(
@@ -968,6 +971,9 @@ export function LeftSidebar() {
             for (const id of ids) {
               await apiClient.deleteEmailAccount(id);
               removeAccount(id);
+            }
+            if (ids.length >= accounts.length) {
+              resetState();
             }
             toast.success(`已删除 ${ids.length} 个账户`);
             setSelectedAccountIds(new Set());
