@@ -147,10 +147,10 @@ export const EmailItem = forwardRef<HTMLDivElement, EmailItemProps>(function Ema
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={`
-        relative p-4 cursor-pointer transition-colors duration-150 border-b border-gray-100 dark:border-gray-700
-        hover:bg-gray-50 dark:hover:bg-gray-750
+        relative p-4 cursor-pointer transition-colors duration-150 border-b border-gray-200 dark:border-gray-700
+        hover:bg-gray-100 dark:hover:bg-gray-800
         ${isSelected ? 'bg-blue-50 dark:bg-blue-900/20 border-r-2 border-blue-500' : ''}
-        ${!email.is_read ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-750'}
+        ${!email.is_read ? 'bg-gray-50 dark:bg-gray-800/40' : ''}
       `}
     >
       {/* 未读指示器 */}
